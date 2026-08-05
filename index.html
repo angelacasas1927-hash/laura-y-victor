@@ -1058,16 +1058,22 @@
       }
 
       submitBtn.disabled = true;
-      statusEl.textContent = 'Enviando...';
-      statusEl.className = 'rf-status loading';
+      submitBtn.textContent = 'Enviando...';
+      statusEl.textContent = '';
+      statusEl.className = 'rf-status';
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(function(){ controller.abort(); }, 15000);
 
       fetch(RSVP_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: controller.signal
       })
       .then(function(){
+        clearTimeout(timeoutId);
         if(payload.asistencia === 'No'){
           document.getElementById('rfModalIcon').textContent = '🥺';
           document.getElementById('rfModalTitle').textContent = 'Gracias por avisarnos';
@@ -1092,8 +1098,10 @@
         }, 2500);
       })
       .catch(function(){
-        statusEl.textContent = 'No se pudo enviar. Comprueba tu conexión e inténtalo de nuevo.';
+        clearTimeout(timeoutId);
+        statusEl.textContent = 'No se ha podido enviar tu confirmación. Inténtalo de nuevo en unos minutos o contacta directamente con Laura y Víctor.';
         statusEl.className = 'rf-status err';
+        submitBtn.textContent = 'Enviar confirmación';
         submitBtn.disabled = false;
       });
     });
